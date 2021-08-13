@@ -1,0 +1,56 @@
+version: "3"
+
+services:
+  docker_php:
+    container_name: docker_php
+    image: devilbox/php-fpm:8.0-work
+    volumes:
+      - ./:/var/www/default/htdocs
+      - ~/.ssh/keys/b220.ru/id_rsa:/root/.ssh/id_rsa
+    working_dir: /var/www/default/htdocs
+    networks:
+      - docker
+
+  docker_nginx:
+    container_name: docker_nginx
+    image: devilbox/nginx-stable
+    volumes:
+      - ./:/var/www/default/htdocs
+    environment:
+      - PHP_FPM_ENABLE=1
+      - PHP_FPM_SERVER_ADDR=docker_php
+      - MAIN_VHOST_DOCROOT=htdocs/public
+      - DOCKER_LOGS=1
+    networks:
+      - docker
+    depends_on:
+      - docker_php
+
+  docker_postgres:
+    container_name: docker_postgres
+    image: postgres:13.3-alpine
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=docker
+      - POSTGRES_DATABSE=docker
+      - POSTGRES_USER=docker
+      - POSTGRES_PASSWORD=docker
+      - PGDATA=/var/lib/postgresql/data
+    networks:
+      - docker
+    ports:
+      - 5115:5432
+
+  docker_redis:
+    container_name: docker_redis
+    image: redis:6
+    networks:
+      - docker
+
+volumes:
+  db_data:
+    external: false
+
+networks:
+  docker:
