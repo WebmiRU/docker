@@ -7,6 +7,8 @@ services:
     volumes:
       - ./:/var/www/default/htdocs
       - ~/.ssh/keys/b220.ru/id_rsa:/root/.ssh/id_rsa
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - nginx_conf:/etc/nginx/conf.d
     working_dir: /var/www/default/htdocs
     networks:
       - docker
@@ -16,6 +18,7 @@ services:
     image: devilbox/nginx-stable
     volumes:
       - ./:/var/www/default/htdocs
+      - nginx_conf:/etc/nginx/conf.d
     environment:
       - PHP_FPM_ENABLE=1
       - PHP_FPM_SERVER_ADDR=docker_php
@@ -25,6 +28,8 @@ services:
       - docker
     depends_on:
       - docker_php
+    ports:
+      - 81:80
 
   docker_postgres:
     container_name: docker_postgres
@@ -47,9 +52,13 @@ services:
     image: redis:6
     networks:
       - docker
+    ports:
+      - 6379:6379
 
 volumes:
   db_data:
+    external: false
+  nginx_conf:
     external: false
 
 networks:
